@@ -1,0 +1,40 @@
+
+name: Gerar Arquivo a partir do Template Específico da Pasta
+
+on:
+  repository_dispatch:
+    types: [criar_arquivo]
+
+jobs:
+  gerar-arquivo:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clonar o repositório
+        uses: actions/checkout@v3
+
+      - name: Definir variáveis
+        run: |
+          echo "ID_PASTA=${{ github.event.client_payload.id_pasta }}" >> $GITHUB_ENV
+          echo "ID_ARQUIVO=${{ github.event.client_payload.id_arquivo }}" >> $GITHUB_ENV
+          echo "NOME_ARQUIVO=${{ github.event.client_payload.nome }}" >> $GITHUB_ENV
+
+      - name: Verificar existência do template
+        run: |
+          if [ ! -f "$ID_PASTA/temp.txt" ]; then
+            echo "Template não encontrado em $ID_PASTA/temp.txt"
+            exit 1
+          fi
+
+      - name: Criar novo arquivo com base no template
+        run: |
+          cp "$ID_PASTA/temp.txt" "$ID_PASTA/$NOME_ARQUIVO"
+          sed -i "s/{{id}}/$ID_ARQUIVO/g" "$ID_PASTA/$NOME_ARQUIVO"
+
+      - name: Commit e push
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "actions@github.com"
+          git add "$ID_PASTA/$NOME_ARQUIVO"
+          git commit -m "Adicionado $NOME_ARQUIVO em $ID_PASTA via template"
+          git push
