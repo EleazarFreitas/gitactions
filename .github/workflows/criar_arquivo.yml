@@ -5,6 +5,9 @@ on:
   repository_dispatch:
     types: [criar_arquivo]
 
+permissions:
+  contents: write  # ✅ permite commits e push
+
 jobs:
   gerar-arquivo:
     runs-on: ubuntu-latest
